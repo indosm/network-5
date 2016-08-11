@@ -1,4 +1,4 @@
-#include <winsock2.h>
+ï»¿#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +12,7 @@
 
 using namespace std;
 
-//ÆĞÅ¶ Åë½Å¿¡ »ç¿ëµÇ´Â ¿©·¯ structµé¿¡ ´ëÇØ¼­ Á¤ÀÇÇØ³õÀº °÷.
+//íŒ¨í‚· í†µì‹ ì— ì‚¬ìš©ë˜ëŠ” ì—¬ëŸ¬ structë“¤ì— ëŒ€í•´ì„œ ì •ì˜í•´ë†“ì€ ê³³.
 typedef struct
 {
 	char *domain;
@@ -36,8 +36,8 @@ typedef struct
 	UINT8 data[];
 } DATAPACKET, *PDATAPACKET;
 
-//À§ÇØ »çÀÌÆ®¸¦ µé¾î°¬À» °æ¿ì Ç¥½ÃµÇ´Â À¥ ÆäÀÌÁö
-//¹Ş¾Æ¶ó ¹«Áö°³ ºö!! ºÌºñ À§Å°´öºĞ¿¡ ¸¹Àº°ÍÀ» ¹è¿ü½À´Ï´Ù.
+//ìœ„í•´ ì‚¬ì´íŠ¸ë¥¼ ë“¤ì–´ê°”ì„ ê²½ìš° í‘œì‹œë˜ëŠ” ì›¹ í˜ì´ì§€
+//ë°›ì•„ë¼ ë¬´ì§€ê°œ ë¹”!! ëµ¤ë¹„ ìœ„í‚¤ë•ë¶„ì— ë§ì€ê²ƒì„ ë°°ì› ìŠµë‹ˆë‹¤.
 const char block_data[] =
 "HTTP/1.1 200 OK\r\n"
 "Connection: close\r\n"
@@ -60,7 +60,7 @@ const char block_data[] =
 "<div style = \"padding: 5px; margin: 0px; margin-top: 15px; border: 3px solid #; background-color: #0064ff;border-radius: 4px;\"><div class = \"tp_link\" color : #000000; \"><b><div class=\"floatleft\"></div></b></div><div style=\"margin - top: .5em; color: #000000; \"></div></div>"
 "<div style = \"padding: 5px; margin: 0px; margin-top: 15px; border: 3px solid #; background-color: #0000cd;border-radius: 4px;\"><div class = \"tp_link\" color : #000000; \"><b><div class=\"floatleft\"></div></b></div><div style=\"margin - top: .5em; color: #000000; \"></div></div>"
 "<div style = \"padding: 5px; margin: 0px; margin-top: 15px; border: 3px solid #; background-color: #a390ee;border-radius: 4px;\"><div class = \"tp_link\" color : #000000; \"><b><div class=\"floatleft\"></div></b></div><div style=\"margin - top: .5em; color: #000000; \"></div></div>"
-"<div style = \"font-size: 40pt;\"><b>¹Ş¾Æ¶ó ¹«Áö°³ ºö!!</b>"
+"<div style = \"font-size: 40pt;\"><b>ë°›ì•„ë¼ ë¬´ì§€ê°œ ë¹”!!!</b>"
 "\t</body>\n"
 "</html>\n";
 
@@ -72,7 +72,7 @@ static PBLACKLIST BlackListInit(void);
 static void BlackListInsert(PBLACKLIST blacklist, PURL url);
 static void BlackListSort(PBLACKLIST blacklist);
 static BOOL BlackListMatch(PBLACKLIST blacklist, PURL url);
-static void BlackListRead(PBLACKLIST blacklist, const char *filename);
+static void BlackListRead(PBLACKLIST blacklist);
 static BOOL BlackListPayloadMatch(PBLACKLIST blacklist, char *data,
 	UINT16 len);
 static char * reverse(char * arr);
@@ -96,18 +96,13 @@ int __cdecl main(int argc, char **argv)
 	UINT16 blockpage_len;
 	PBLACKLIST blacklist;
 	unsigned i;
-	INT16 priority = 404; 
+	INT16 priority = 404;
 
-	//commandlineÀ» ÅëÇØ ÀĞ¾î¿Ã text fileÀ» Á¤ÀÇÇÏ°Ô µÈ´Ù.
-	if (argc != 2)
-	{
-		fprintf(stderr, "usage: %s [file.txt]\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
 	blacklist = BlackListInit();
-	BlackListRead(blacklist, argv[1]);
+	BlackListRead(blacklist);
 	BlackListSort(blacklist);
-	//WinDivert¸¦ ÇÏ±â Àü ÆĞÅ¶ ±âº» ¼³Á¤À» ÇÑ´Ù.
+
+	//WinDivertë¥¼ í•˜ê¸° ì „ íŒ¨í‚· ê¸°ë³¸ ì„¤ì •ì„ í•œë‹¤.
 	blockpage_len = sizeof(DATAPACKET) + sizeof(block_data) - 1;
 	blockpage = (PDATAPACKET)malloc(blockpage_len);
 	if (blockpage == NULL)
@@ -128,12 +123,12 @@ int __cdecl main(int argc, char **argv)
 	finish->tcp.Fin = 1;
 	finish->tcp.Ack = 1;
 
-	// WinDivert¸¦ OpenÇÑ´Ù.
+	// WinDivertë¥¼ Opení•œë‹¤.
 	handle = WinDivertOpen(
-		"outbound && "              
-		"ip && "                   
-		"tcp.DstPort == 80 && "     
-		"tcp.PayloadLength > 0",    
+		"outbound && "
+		"ip && "
+		"tcp.DstPort == 80 && "
+		"tcp.PayloadLength > 0",
 		WINDIVERT_LAYER_NETWORK, priority, 0
 	);
 	if (handle == INVALID_HANDLE_VALUE)
@@ -144,7 +139,7 @@ int __cdecl main(int argc, char **argv)
 	}
 	printf("OPENED WinDivert\n");
 
-	// °è¼ÓÇØ¼­ µ¹¾Æ°¡¸é¼­, WinDivert¸¦ ÅëÇØ ÆĞÅ¶À» ÀĞ°í, »çÀÌÆ®°¡ °É¸®´ÂÁö Á¶»ç¸¦ ÇÑ´Ù.
+	// ê³„ì†í•´ì„œ ëŒì•„ê°€ë©´ì„œ, WinDivertë¥¼ í†µí•´ íŒ¨í‚·ì„ ì½ê³ , ì‚¬ì´íŠ¸ê°€ ê±¸ë¦¬ëŠ”ì§€ ì¡°ì‚¬ë¥¼ í•œë‹¤.
 	while (TRUE)
 	{
 		if (!WinDivertRecv(handle, packet, sizeof(packet), &addr, &packet_len))
@@ -169,8 +164,8 @@ int __cdecl main(int argc, char **argv)
 			continue;
 		}
 
-		//¸¸¾à À¯ÇØ»çÀÌÆ®¿¡ µé¾î°¡°Ô µÇ¾ú´Ù¸é,
-		//HijackingÀ» ½ÃµµÇÏ°Ô µÈ´Ù.
+		//ë§Œì•½ ìœ í•´ì‚¬ì´íŠ¸ì— ë“¤ì–´ê°€ê²Œ ë˜ì—ˆë‹¤ë©´,
+		//Hijackingì„ ì‹œë„í•˜ê²Œ ëœë‹¤.
 		reset->ip.SrcAddr = ip_header->SrcAddr;
 		reset->ip.DstAddr = ip_header->DstAddr;
 		reset->tcp.SrcPort = tcp_header->SrcPort;
@@ -315,21 +310,20 @@ static BOOL BlackListMatch(PBLACKLIST blacklist, PURL url)
 
 
 
-static void BlackListRead(PBLACKLIST blacklist, const char *filename)
+static void BlackListRead(PBLACKLIST blacklist)
 {
-	//argv[1]·Î ºÎÅÍ URLÀ» ÀĞ°Ô µÇ´Âµ¥, regex¸¦ ÀÌ¿ëÇØ, ¾î¶°ÇÑ URLÀÌµç Ã³¸®ÇÏ°Ô ÇØÁØ´Ù.
+	//argv[1]ë¡œ ë¶€í„° URLì„ ì½ê²Œ ë˜ëŠ”ë°, regexë¥¼ ì´ìš©í•´, ì–´ë– í•œ URLì´ë“  ì²˜ë¦¬í•˜ê²Œ í•´ì¤€ë‹¤.
 	char domain[MAXURL + 1];
 	char uri[MAXURL + 1];
 	int c;
 	UINT16 i, j;
 	PURL url;
-	FILE *file = fopen(filename, "r");
+	FILE *file = fopen("mal_site.txt", "r");
 	char str[MAXURL * 2 + 2];
 	string reg;
 	if (file == NULL)
 	{
-		fprintf(stderr, "error: could not open blacklist file %s\n",
-			filename);
+		fprintf(stderr, "error: could not open blacklist file [mal_site.txt]\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -384,7 +378,7 @@ memory_error:
 
 static BOOL BlackListPayloadMatch(PBLACKLIST blacklist, char *data, UINT16 len)
 {
-	//ÆĞÅ¶ µ¥ÀÌÅÍ¸¦ ºĞ¼®ÇØ, À¯ÇØ»çÀÌÆ®ÀÎÁö ¾Æ´ÑÁö¸¦ ÆÇ´ÜÇÑ´Ù.
+	//íŒ¨í‚· ë°ì´í„°ë¥¼ ë¶„ì„í•´, ìœ í•´ì‚¬ì´íŠ¸ì¸ì§€ ì•„ë‹Œì§€ë¥¼ íŒë‹¨í•œë‹¤.
 	static const char get_str[] = "GET /";
 	static const char post_str[] = "POST /";
 	static const char http_host_str[] = " HTTP/1.1\r\nHost: ";
